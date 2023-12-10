@@ -45,7 +45,7 @@ loadMoreBtn.addEventListener('click', async function () {
 
 async function fetchImages() {
   const apiKey = '41130229-b97acaf2c1e96ee437e7ee928';
-  const perPage = 20;
+  const perPage = 40;
 
   const response = await axios.get('https://pixabay.com/api/', {
     params: {
