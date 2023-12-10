@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Notiflix from 'notiflix';
-import SimpleLightbox from "simplelightbox";
+import SimpleLightbox from 'simplelightbox';
 import "simplelightbox/dist/simple-lightbox.min.css";
 
 const form = document.getElementById('search-form');
@@ -9,7 +9,6 @@ const loadMoreBtn = document.querySelector('.load-more');
 
 let page = 1;
 let searchQuery = '';
-
 
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
@@ -64,8 +63,8 @@ async function fetchImages() {
 };
 
 const lightbox = new SimpleLightbox('.photo-card a', {
-  captionDelay: 250,
-  overlayOpacity: 0.5
+    captionDelay: 250,
+    overlayOpacity: 0.5
 });
 
 function handleResponse(data) {
@@ -78,22 +77,22 @@ function handleResponse(data) {
 
   Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
 
-  lightbox.refresh();
+  gallery.insertAdjacentHTML('beforeend', createImageCard(hits));
 
-  gallery.insertAdjacentHTML('beforeend', createMarkup(hits));
+  lightbox.refresh();
 
   smoothScrollToGallery();
 };
 
-function createMarkup(arr) {
-  return arr.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => 
-    `<div class="photo-card">
+function createImageCard(hit) {
+  return hit.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => `
+    <div class="photo-card">
       <a href="${largeImageURL}" data-lightbox="gallery">
         <img 
-          class="card-img" 
-          src="${webformatURL}" 
-          alt="${tags}" 
-          loading="lazy">
+        class="card-img" 
+        src="${webformatURL}" 
+        alt="${tags}" 
+        loading="lazy">
       </a>
       <div class="info">
         <p class="info-item"><b>Likes</b> ${likes}</p>
@@ -106,8 +105,8 @@ function createMarkup(arr) {
 };
 
 if (gallery.childElementCount > 0) {
-  lightbox.next();
-}
+    lightbox.next();
+};
 
 function smoothScrollToGallery() {
   const { height: cardHeight } = document.querySelector('.photo-card').getBoundingClientRect();
