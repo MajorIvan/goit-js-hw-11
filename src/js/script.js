@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { fetchImages } from './api.js';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import "simplelightbox/dist/simple-lightbox.min.css";
@@ -22,18 +22,25 @@ form.addEventListener('submit', async function (event) {
   };
 
   page = 1;
+  loadedImagesCount = 0;
   gallery.innerHTML = ''; //clear gallery
 
   try {
-    const data = await fetchImages();
-    handleResponse(data);
+    const data = await fetchImages(page, searchQuery);
+    if (data.hits.length === 0) {
+      Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    } else {
+      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      window.addEventListener('scroll', scrollLoadMore)
+      handleResponse(data);
+    };
   } catch (error) {
     console.error('Error fetching images:', error);
     Notiflix.Notify.failure('Something went wrong. Please try again.');
   };
 });
 
-window.addEventListener('scroll', () => {
+function scrollLoadMore() {
   const scrollHeight = document.documentElement.scrollHeight;
   const scrollTop = window.scrollY;
   const clientHeight = document.documentElement.clientHeight;
@@ -41,37 +48,17 @@ window.addEventListener('scroll', () => {
   if (scrollHeight - (scrollTop + clientHeight) < 1) {
     loadMoreImages();
   };
-});
+};
 
 async function loadMoreImages() {
   page += 1;
-
   try {
-    const data = await fetchImages();
+    const data = await fetchImages(page, searchQuery);
     handleResponse(data);
   } catch (error) {
     console.error('Error fetching more images:', error);
     Notiflix.Notify.failure('Failed to load more images. Please try again.');
   };
-};
-
-async function fetchImages() {
-  const apiKey = '41130229-b97acaf2c1e96ee437e7ee928';
-  const perPage = 40;
-
-  const response = await axios.get('https://pixabay.com/api/', {
-    params: {
-      key: apiKey,
-      q: searchQuery,
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: true,
-      page,
-      per_page: perPage,
-    },
-  });
-
-  return response.data;
 };
 
 const lightbox = new SimpleLightbox('.photo-card a', {
@@ -82,20 +69,15 @@ const lightbox = new SimpleLightbox('.photo-card a', {
 function handleResponse(data) {
   const { hits, totalHits } = data;
 
-  if (hits.length === 0) {
-    Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-    return;
-  } else {
-    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
-    gallery.insertAdjacentHTML('beforeend', createImageCard(hits));
-    lightbox.refresh();
-    smoothScrollToGallery();
-  };
+  gallery.insertAdjacentHTML('beforeend', createImageCard(hits));
+  lightbox.refresh();
+  smoothScrollToGallery();
 
   loadedImagesCount += hits.length;
 
-  if (loadedImagesCount >= totalHits) {
+  if (loadedImagesCount == totalHits) {
     Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    window.removeEventListener('scroll', scrollLoadMore)
   };
 };
 
